@@ -1,0 +1,842 @@
+[Options]
+Description=VBScript HTML
+Language=VBScript
+SaveAsExtension=.htm
+SaveAsFileTypes=HTML Files (*.htm,*.html)|*.htm,*.html|VBScript Files (*.vbs)|*.vbs|All Files (*.*)|*.*
+
+[Template1]
+{Rem}
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+_/  MASH - VBScript Template (Single Character)
+_/  Copyright 1998-2004 by BellCraft Technologies
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+{/Rem}
+{Object1}
+<object id="AgentControl" width="0" height="0"
+  classid="CLSID:D45FD31B-5C6E-11D1-9EC1-00C04FD7081F"
+  codebase="#VERSION=2,0,0,0">
+</object>
+
+<object id="L&HTruVoice" width="0" height="0"
+  classid="CLSID:B8F2846E-CE36-11D0-AC83-00C04FD97575"
+  codebase="#VERSION=6,0,0,0">
+</object>
+
+{SpeechRec}
+<object id="MSSpeechRecognition" width="0" height="0"
+  classid="CLSID:161FA781-A52C-11D0-8D7C-00A0C9034A7E"
+  codebase="#VERSION=4,0,0,0">
+</object>
+
+{/SpeechRec}
+{/Object1}
+<script language="VBScript" type="text/vbscript">
+<!--
+#COPYRIGHT
+
+' * Character Objects
+#DIM_CHAR_OBJS
+
+' * Variables
+Dim UsedChars
+Dim %CharID%ID
+Dim %CharID%ACS
+{WebLoad}
+Dim %CharID%URL
+Dim %CharID%States
+Dim %CharID%Animations
+Dim %CharID%Req
+Dim %CharID%StatesReq
+Dim %CharID%AnimationsReq
+{/WebLoad}
+Dim %CharID%Loaded
+Dim HideReq
+Dim Req
+#DIM_CHAR_XY
+
+' * Initialize
+UsedChars = "%CharID%"
+
+#CHAR_INIT
+
+{Object2}
+' * Prevent Auto-Download of Microsoft Agent if not already installed
+If IsAgentInstalled() Then
+    Document.WriteLn "<object id=""AgentControl"" width=""0"" height=""0"""
+    Document.WriteLn "  classid=""CLSID:D45FD31B-5C6E-11D1-9EC1-00C04FD7081F"""
+    Document.WriteLn "  codebase=""#VERSION=2,0,0,0"">"
+    Document.WriteLn "</object>"
+
+    Document.WriteLn "<object id=""L&HTruVoice"" width=""0"" height=""0"""
+    Document.WriteLn "  classid=""CLSID:B8F2846E-CE36-11D0-AC83-00C04FD97575"""
+    Document.WriteLn "  codebase=""#VERSION=6,0,0,0"">"
+    Document.WriteLn "</object>"
+{SpeechRec}
+
+    Document.WriteLn "<object id=""MSSpeechRecognition"" width=""0"" height=""0"""
+    Document.WriteLn "  classid=""CLSID:161FA781-A52C-11D0-8D7C-00A0C9034A7E"""
+    Document.WriteLn "  codebase=""#VERSION=4,0,0,0"">"
+    Document.WriteLn "</object>"
+{/SpeechRec}
+End If
+
+{/Object2}
+Function IsAgentInstalled()
+    ' Purpose:  Returns True if Agent 2.0 is installed, else False
+    On Error Resume Next
+
+    Dim AgentControl
+
+    If ScriptEngineMajorVersion < 2 Then
+        IsAgentInstalled = False
+    Else
+        Set AgentControl = CreateObject("Agent.Control.2")
+        IsAgentInstalled = IsObject(AgentControl)
+    End If
+End Function
+
+Sub Window_OnLoad()
+    ' Purpose:  Runs automatically when page is loaded
+    On Error Resume Next
+
+    ' * INSERT ANY NON-AGENT RELATED SCRIPTING HERE
+
+    Call AgentMain
+End Sub
+
+Sub AgentMain()
+    On Error Resume Next
+
+    If Not IsAgentInstalled() Then
+        Exit Sub
+    End If
+
+    AgentControl.Connected = True
+
+    %CharID%Loaded = LoadLocalChar(%CharID%ID, %CharID%ACS)
+
+{LocalOnly}
+    If Not %CharID%Loaded Then
+        ' Attempt to load default character
+        %CharID%Loaded = LoadLocalChar(%CharID%ID, "")
+    End If
+{/LocalOnly}
+
+    If %CharID%Loaded Then
+        Call SetCharObj
+    End If
+
+    Call CheckLoadStatus
+End Sub
+
+Function LoadLocalChar(ByVal CharID, ByVal CharACS)
+    ' Purpose:  Attempts to load the specified character
+    ' Returns:  True if successful, False if not
+    On Error Resume Next
+
+    If CharACS = "" Then
+{WebLoad}
+    	If CharID <> "Char" Then
+    		LoadLocalChar = False
+    		Exit Function
+    	End If
+{/WebLoad}
+
+    	AgentControl.Characters.Load CharID
+    Else
+    	AgentControl.Characters.Load CharID, CharACS
+    End If
+
+    If Err = 0 Then
+        LoadLocalChar = True
+        Exit Function
+    End If
+    LoadLocalChar = False
+End Function
+
+Sub SetCharObj()
+    ' Purpose:  Sets the character reference and TTS Language ID
+    On Error Resume Next
+
+#INIT_CHAR
+End Sub
+
+Sub CheckLoadStatus()
+    ' Purpose:  Determines if required characters have been loaded.
+    '           If not, issue request to load next character
+    '           else run the AgentIntro routine
+
+    If Not %CharID%Loaded Then
+{WebLoad}
+        If Instr(%CharID%URL, "unknown.server.com") = 0 Then
+            Window.Status = "Loading " & %CharID%ID & " Character.  Please Wait..."
+            Set %CharID%Req = AgentControl.Characters.Load(%CharID%ID, %CharID%URL)
+        Else
+            ' Attempt to load default character
+            %CharID%Loaded = LoadLocalChar(%CharID%ID, "")
+
+            If %CharID%Loaded Then
+                Call SetCharObj
+                Window.Status = ""
+                Call AgentIntro
+                Exit Sub
+            End If
+
+            Call LoadError
+            Exit Sub
+        End If
+        Exit Sub
+{/WebLoad}
+{LocalOnly}
+        Call LoadError
+        Exit Sub
+{/LocalOnly}
+    End If
+
+    Window.Status = ""
+    Call AgentIntro
+End Sub
+
+Sub AgentControl_RequestComplete(ByVal RequestObject)
+    ' Purpose:  Take action on completion or failure of requests
+    On Error Resume Next
+
+{WebLoad}
+    Select Case RequestObject
+    Case %CharID%Req
+        If RequestObject.Status = 0 Then
+            Call SetCharObj
+
+            If %CharID%States <> "" Then
+                Window.Status = "Loading " & %CharID%ID & " States.  Please Wait..."
+                Set %CharID%StatesReq = AgentControl.Characters(%CharID%ID).Get("State", %CharID%States, True)
+            ElseIf %CharID%Animations <> "" Then
+                Window.Status = "Loading " & %CharID%ID & " Animations.  Please Wait..."
+                Set %CharID%AnimationsReq = AgentControl.Characters(%CharID%ID).Get("Animation", %CharID%Animations, True)
+            Else
+                %CharID%Loaded = True
+                Call CheckLoadStatus
+            End If
+        Else
+            Call LoadError
+        End If
+        Exit Sub
+    Case %CharID%StatesReq
+        If RequestObject.Status = 0 Then
+            If %CharID%Animations <> "" Then
+                Window.Status = "Loading " & %CharID%ID & " Animations.  Please Wait..."
+                Set %CharID%AnimationsReq = AgentControl.Characters(%CharID%ID).Get("Animation", %CharID%Animations, True)
+            Else
+                %CharID%Loaded = True
+                Call CheckLoadStatus
+            End If
+        Else
+            Call LoadError
+        End If
+        Exit Sub
+    Case %CharID%AnimationsReq
+        If RequestObject.Status = 0 Then
+            %CharID%Loaded = True
+            Call CheckLoadStatus
+        Else
+            Call LoadError
+        End If
+        Exit Sub
+    Case HideReq
+        AgentControl.Characters.Unload %CharID%ID
+    End Select
+{/WebLoad}
+End Sub
+
+Sub LoadError()
+    Dim strMsg
+    Window.Status = ""
+    strMsg = "Error Loading Character: " & %CharID%ID
+    strMsg = strMsg & Chr(13) & Chr(13) & "This Microsoft Agent Script requires the character(s):"
+    strMsg = strMsg & Chr(13) & UsedChars
+    MsgBox strMsg, 48
+End Sub
+
+Sub AgentControl_Click(ByVal CharacterID, ByVal Button, ByVal Shift, ByVal X, ByVal Y)
+
+End Sub
+
+Sub AgentControl_DblClick(ByVal CharacterID, ByVal Button, ByVal Shift, ByVal X, ByVal Y)
+    ' Purpose:  Stop and Hide all characters on double-click
+    On Error Resume Next
+
+    %CharID%.StopAll
+    If Not %CharID%ID.HasOtherClients Then
+        If %CharID%.Visible Then
+            Set HideReq = %CharID%.Hide()
+        Else
+            AgentControl.Characters.Unload %CharID%ID
+        End If
+    End If
+End Sub
+
+{ScreenPos}
+Sub GetScreenPositions()
+    On Error Resume Next
+
+    Dim ScreenWidth
+    Dim ScreenHeight
+
+    ScreenWidth = Window.Screen.Width
+    ScreenHeight = Window.Screen.Height
+
+    If ScreenWidth = 0 Or ScreenHeight = 0 Then
+        ScreenWidth = 800
+        ScreenHeight = 600
+    End If
+
+#INIT_CHAR_POS
+End Sub
+
+{/ScreenPos}
+{GetDay}
+Function GetDay()
+    ' Purpose:  Returns current weekday name
+    Dim aDay
+    aDay = Array("","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday")
+    GetDay = aDay(WeekDay(Now()))
+End Function
+
+{/GetDay}
+{GetDate}
+Function GetDate()
+    ' Purpose:  Returns current long date
+    Dim aMon
+    Dim sDay
+
+    aMon = Array("","January","February","March","April","May","June","July","August","September","October","November","December")
+
+    sDay = Day(Now())
+
+    If sDay = "11" Or sDay = "12" Or sDay = "13" Then
+        sDay = sDay & "th"
+    Else
+        Select Case Right(sDay, 1)
+        Case "1": sDay = sDay & "st"
+        Case "2": sDay = sDay & "nd"
+        Case "3": sDay = sDay & "rd"
+        Case Else
+            sDay = sDay & "th"
+        End Select
+    End If
+
+    GetDate = aMon(Month(Now())) & " " & sDay & ", " & Year(Now())
+End Function
+
+{/GetDate}
+{GetTime}
+Function GetTime()
+    ' Purpose:  Returns current time
+    On Error Resume Next
+    Dim sTime
+
+    sTime = Left(Time(), 5)
+    If Right(sTime, 1) = ":" Then
+        sTime = Left(sTime, Len(sTime) - 1)
+    End If
+    sTime = sTime & Mid(Time(), InStr(Time(), " "))
+
+    GetTime = sTime
+End Function
+
+{/GetTime}
+{GetTimeOfDay}
+Function GetTimeOfDay()
+    ' Purpose:  Returns current time of day
+    Dim TimeOfDay
+    Dim h
+
+    h = Hour(Now())
+
+    If h < 12 Then
+        TimeOfDay = "Morning"
+    ElseIf h < 17 Then
+        TimeOfDay = "Afternoon"
+    Else
+        TimeOfDay = "Evening"
+    End If
+
+    GetTimeOfDay = TimeOfDay
+End Function
+
+{/GetTimeOfDay}
+Sub InitAgentCommands()
+    ' Purpose:  Initialize the Commands menu
+    On Error Resume Next
+
+#INIT_COMMANDS
+End Sub
+
+Sub AgentControl_Command(ByVal UserInput)
+    ' Purpose:  Determine Command that was selected either by menu or voice
+    '           and run the applicable Command Script
+    On Error Resume Next
+
+    Dim BadConfidence
+    BadConfidence = 10
+
+    If (UserInput.Confidence <= -40) Then
+        ' Bad Recognition
+        Exit Sub
+    ElseIf (UserInput.Alt1Name <> "") And Abs(Abs(UserInput.Alt1Confidence) - Abs(UserInput.Confidence)) < BadConfidence Then
+        ' Bad Confidence - too close to another command
+        Exit Sub
+    ElseIf (UserInput.Alt2Name <> "") And Abs(Abs(UserInput.Alt2Confidence) - Abs(UserInput.Confidence)) < BadConfidence Then
+        ' Bad Confidence - too close to another command
+        Exit Sub
+    Else ' High Confidence
+        ' *** BEGIN MASH USER COMMANDS ***
+#COMMAND_SCRIPT
+        ' *** END MASH USER COMMANDS ***
+    End If
+End Sub
+
+Sub AgentControl_Bookmark(ByVal BookmarkID)
+    On Error Resume Next
+
+{Bookmarks}
+    ' *** BEGIN MASH USER BOOKMARKS ***
+#BOOKMARK_SCRIPT
+    ' *** END MASH USER BOOKMARKS ***
+{/Bookmarks}
+End Sub
+
+Sub AgentIntro()
+    On Error Resume Next
+
+{ScreenPos}
+    Call GetScreenPositions
+{/ScreenPos}
+    Call InitAgentCommands
+
+    ' *** BEGIN MASH USER SCRIPT ***
+
+#MAIN_SCRIPT
+
+    ' *** END MASH USER SCRIPT ***
+End Sub
+'_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+-->
+</script>
+
+[Template2]
+{Rem}
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+_/  MASH - VBScript Template (Multiple Characters)
+_/  Copyright 1998-2004 by BellCraft Technologies
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+{/Rem}
+{Object1}
+<object id="AgentControl" width="0" height="0"
+  classid="CLSID:D45FD31B-5C6E-11D1-9EC1-00C04FD7081F"
+  codebase="#VERSION=2,0,0,0">
+</object>
+
+<object id="L&HTruVoice" width="0" height="0"
+  classid="CLSID:B8F2846E-CE36-11D0-AC83-00C04FD97575"
+  codebase="#VERSION=6,0,0,0">
+</object>
+
+{SpeechRec}
+<object id="MSSpeechRecognition" width="0" height="0"
+  classid="CLSID:161FA781-A52C-11D0-8D7C-00A0C9034A7E"
+  codebase="#VERSION=4,0,0,0">
+</object>
+
+{/SpeechRec}
+{/Object1}
+<script language="VBScript" type="text/vbscript">
+<!--
+#COPYRIGHT
+
+' * Character Objects
+#DIM_CHAR_OBJS
+
+' * Variables
+Dim CharCount
+Dim UsedChars
+Dim CharID(#CHAR_COUNT)
+Dim CharACS(#CHAR_COUNT)
+{WebLoad}
+Dim CharURL(#CHAR_COUNT)
+Dim States(#CHAR_COUNT)
+Dim Animations(#CHAR_COUNT)
+Dim CharReq(#CHAR_COUNT)
+Dim StatesReq(#CHAR_COUNT)
+Dim AnimationsReq(#CHAR_COUNT)
+{/WebLoad}
+Dim Loaded(#CHAR_COUNT)
+Dim HideReq(#CHAR_COUNT)
+Dim Req
+#DIM_CHAR_XY
+
+' * Initialize
+CharCount = #CHAR_COUNT
+UsedChars = #USED_CHARS
+
+#CHAR_INIT
+
+{Object2}
+' * Prevent Auto-Download of Microsoft Agent if not already installed
+If IsAgentInstalled() Then
+    Document.WriteLn "<object id=""AgentControl"" width=""0"" height=""0"""
+    Document.WriteLn "  classid=""CLSID:D45FD31B-5C6E-11D1-9EC1-00C04FD7081F"""
+    Document.WriteLn "  codebase=""#VERSION=2,0,0,0"">"
+    Document.WriteLn "</object>"
+
+    Document.WriteLn "<object id=""L&HTruVoice"" width=""0"" height=""0"""
+    Document.WriteLn "  classid=""CLSID:B8F2846E-CE36-11D0-AC83-00C04FD97575"""
+    Document.WriteLn "  codebase=""#VERSION=6,0,0,0"">"
+    Document.WriteLn "</object>"
+{SpeechRec}
+
+    Document.WriteLn "<object id=""MSSpeechRecognition"" width=""0"" height=""0"""
+    Document.WriteLn "  classid=""CLSID:161FA781-A52C-11D0-8D7C-00A0C9034A7E"""
+    Document.WriteLn "  codebase=""#VERSION=4,0,0,0"">"
+    Document.WriteLn "</object>"
+{/SpeechRec}
+End If
+
+{/Object2}
+Function IsAgentInstalled()
+    ' Purpose:  Returns True if Agent 2.0 is installed, else False
+    On Error Resume Next
+
+    Dim AgentControl
+
+    If ScriptEngineMajorVersion < 2 Then
+        IsAgentInstalled = False
+    Else
+        Set AgentControl = CreateObject("Agent.Control.2")
+        IsAgentInstalled = IsObject(AgentControl)
+    End If
+End Function
+
+Sub Window_OnLoad()
+    ' Purpose:  Runs automatically when page is loaded
+    On Error Resume Next
+
+    ' * INSERT ANY NON-AGENT RELATED SCRIPTING HERE
+
+    Call AgentMain
+End Sub
+
+Sub AgentMain()
+    On Error Resume Next
+
+    Dim i
+
+    If Not IsAgentInstalled() Then
+        Exit Sub
+    End If
+
+    AgentControl.Connected = True
+
+    For i = 1 To CharCount
+        Loaded(i) = LoadLocalChar(CharID(i), CharACS(i))
+
+        If Loaded(i) Then
+            Call SetCharObj(i)
+        End If
+    Next
+
+    Call CheckLoadStatus
+End Sub
+
+Function LoadLocalChar(ByVal CharID, ByVal CharACS)
+    ' Purpose:  Attempts to load the specified character
+    ' Returns:  True if successful, False if not
+    On Error Resume Next
+
+    AgentControl.Characters.Load CharID, CharACS
+
+    If Err = 0 Then
+        LoadLocalChar = True
+        Exit Function
+    End If
+    LoadLocalChar = False
+End Function
+
+Sub SetCharObj(ByVal i)
+    ' Purpose:  Sets the character reference and TTS Language ID
+    On Error Resume Next
+
+#INIT_CHAR
+End Sub
+
+Sub CheckLoadStatus()
+    ' Purpose:  Determines if required characters have been loaded.
+    '           If not, issue request to load next character
+    '           else run the AgentIntro routine
+    Dim i
+
+    For i = 1 To CharCount
+        If Not Loaded(i) Then
+{WebLoad}
+            If Instr(CharURL(i), "unknown.server.com") = 0 Then
+                Window.Status = "Loading " & CharID(i) & " Character.  Please Wait..."
+                Set CharReq(i) = AgentControl.Characters.Load(CharID(i), CharURL(i))
+                Exit Sub
+            Else
+                Call LoadError(i)
+                Exit Sub
+            End If
+{/WebLoad}
+{LocalOnly}
+            Call LoadError(i)
+            Exit Sub
+{/LocalOnly}
+        End If
+    Next
+
+    Window.Status = ""
+    Call AgentIntro
+End Sub
+
+Sub AgentControl_RequestComplete(ByVal RequestObject)
+    ' Purpose:  Take action on completion or failure of requests
+    On Error Resume Next
+
+{WebLoad}
+    Dim i
+
+    For i = 1 To CharCount
+        Select Case RequestObject
+        Case CharReq(i)
+            If RequestObject.Status = 0 Then
+                Call SetCharObj(i)
+
+                If States(i) <> "" Then
+                    Window.Status = "Loading " & CharID(i) & " States.  Please Wait..."
+                    Set StatesReq(i) = AgentControl.Characters(CharID(i)).Get("State", States(i), True)
+                ElseIf Animations(i) <> "" Then
+                    Window.Status = "Loading " & CharID(i) & " Animations.  Please Wait..."
+                    Set AnimationsReq(i) = AgentControl.Characters(CharID(i)).Get("Animation", Animations(i), True)
+                Else
+                    Loaded(i) = True
+                    Call CheckLoadStatus
+                End If
+            Else
+                Call LoadError(i)
+            End If
+            Exit Sub
+        Case StatesReq(i)
+            If RequestObject.Status = 0 Then
+                If Animations(i) <> "" Then
+                    Window.Status = "Loading " & CharID(i) & " Animations.  Please Wait..."
+                    Set AnimationsReq(i) = AgentControl.Characters(CharID(i)).Get("Animation", Animations(i), True)
+                Else
+                    Loaded(i) = True
+                    Call CheckLoadStatus
+                End If
+            Else
+                Call LoadError(i)
+            End If
+            Exit Sub
+        Case AnimationsReq(i)
+            If RequestObject.Status = 0 Then
+                Loaded(i) = True
+                Call CheckLoadStatus
+            Else
+                Call LoadError(i)
+            End If
+            Exit Sub
+        Case HideReq(i)
+            AgentControl.Characters.Unload CharID(i)
+        End Select
+    Next
+{/WebLoad}
+End Sub
+
+Sub LoadError(ByVal i)
+    Dim strMsg
+    Window.Status = ""
+    strMsg = "Error Loading Character: " & CharID(i)
+    strMsg = strMsg & Chr(13) & Chr(13) & "This Microsoft Agent Script requires the character(s):"
+    strMsg = strMsg & Chr(13) & UsedChars
+    MsgBox strMsg, 48
+End Sub
+
+Sub AgentControl_Click(ByVal CharacterID, ByVal Button, ByVal Shift, ByVal X, ByVal Y)
+
+End Sub
+
+Sub AgentControl_DblClick(ByVal CharacterID, ByVal Button, ByVal Shift, ByVal X, ByVal Y)
+    ' Purpose:  Stop and Hide all characters on double-click
+    On Error Resume Next
+    Dim i
+
+    For i = 1 To CharCount
+        AgentControl.Characters(CharID(i)).StopAll
+        If Not AgentControl.Characters(CharID(i)).HasOtherClients Then
+            If AgentControl.Characters(CharID(i)).Visible Then
+                Set HideReq(i) = AgentControl.Characters(CharID(i)).Hide
+            Else
+		AgentControl.Characters.Unload CharID(i)
+            End If
+        End If
+    Next
+End Sub
+
+Sub WaitFor(ByVal Req)
+    ' Purpose:  Make characters wait until request is completed
+    On Error Resume Next
+    Dim i
+
+    For i = 1 To CharCount
+        AgentControl.Characters(CharID(i)).Wait Req
+    Next
+End Sub
+
+{ScreenPos}
+Sub GetScreenPositions()
+    On Error Resume Next
+
+    Dim ScreenWidth
+    Dim ScreenHeight
+
+    ScreenWidth = Window.Screen.Width
+    ScreenHeight = Window.Screen.Height
+
+    If ScreenWidth = 0 Or ScreenHeight = 0 Then
+        ScreenWidth = 800
+        ScreenHeight = 600
+    End If
+
+#INIT_CHAR_POS
+End Sub
+
+{/ScreenPos}
+{GetDay}
+Function GetDay()
+    ' Purpose:  Returns current weekday name
+    Dim aDay
+    aDay = Array("","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday")
+    GetDay = aDay(WeekDay(Now()))
+End Function
+
+{/GetDay}
+{GetDate}
+Function GetDate()
+    ' Purpose:  Returns current long date
+    Dim aMon
+    Dim sDay
+
+    aMon = Array("","January","February","March","April","May","June","July","August","September","October","November","December")
+
+    sDay = Day(Now())
+
+    If sDay = "11" Or sDay = "12" Or sDay = "13" Then
+        sDay = sDay & "th"
+    Else
+        Select Case Right(sDay, 1)
+        Case "1": sDay = sDay & "st"
+        Case "2": sDay = sDay & "nd"
+        Case "3": sDay = sDay & "rd"
+        Case Else
+            sDay = sDay & "th"
+        End Select
+    End If
+
+    GetDate = aMon(Month(Now())) & " " & sDay & ", " & Year(Now())
+End Function
+
+{/GetDate}
+{GetTime}
+Function GetTime()
+    ' Purpose:  Returns current time
+    On Error Resume Next
+    Dim sTime
+
+    sTime = Left(Time(), 5)
+    If Right(sTime, 1) = ":" Then
+        sTime = Left(sTime, Len(sTime) - 1)
+    End If
+    sTime = sTime & Mid(Time(), InStr(Time(), " "))
+
+    GetTime = sTime
+End Function
+
+{/GetTime}
+{GetTimeOfDay}
+Function GetTimeOfDay()
+    ' Purpose:  Returns current time of day
+    Dim TimeOfDay
+    Dim h
+
+    h = Hour(Now())
+
+    If h < 12 Then
+        TimeOfDay = "Morning"
+    ElseIf h < 17 Then
+        TimeOfDay = "Afternoon"
+    Else
+        TimeOfDay = "Evening"
+    End If
+
+    GetTimeOfDay = TimeOfDay
+End Function
+
+{/GetTimeOfDay}
+Sub InitAgentCommands()
+    ' Purpose:  Initialize the Commands menu
+
+#INIT_COMMANDS
+End Sub
+
+Sub AgentControl_Command(ByVal UserInput)
+    ' Purpose:  Determine Command that was selected either by menu or voice
+    '           and run the applicable Command Script
+    On Error Resume Next
+
+    Dim BadConfidence
+    BadConfidence = 10
+
+    If (UserInput.Confidence <= -40) Then
+        ' Bad Recognition
+        Exit Sub
+    ElseIf (UserInput.Alt1Name <> "") And Abs(Abs(UserInput.Alt1Confidence) - Abs(UserInput.Confidence)) < BadConfidence Then
+        ' Bad Confidence - too close to another command
+        Exit Sub
+    ElseIf (UserInput.Alt2Name <> "") And Abs(Abs(UserInput.Alt2Confidence) - Abs(UserInput.Confidence)) < BadConfidence Then
+        ' Bad Confidence - too close to another command
+        Exit Sub
+    Else ' High Confidence
+        ' *** BEGIN MASH USER COMMANDS ***
+#COMMAND_SCRIPT
+        ' *** END MASH USER COMMANDS ***
+    End If
+End Sub
+
+Sub AgentControl_Bookmark(ByVal BookmarkID)
+    On Error Resume Next
+
+{Bookmarks}
+    ' *** BEGIN MASH USER BOOKMARKS ***
+#BOOKMARK_SCRIPT
+    ' *** END MASH USER BOOKMARKS ***
+{/Bookmarks}
+End Sub
+
+Sub AgentIntro()
+    On Error Resume Next
+
+{ScreenPos}
+    Call GetScreenPositions
+{/ScreenPos}
+    Call InitAgentCommands
+
+    ' *** BEGIN MASH USER SCRIPT ***
+
+#MAIN_SCRIPT
+
+    ' *** END MASH USER SCRIPT ***
+End Sub
+'_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+-->
+</script>

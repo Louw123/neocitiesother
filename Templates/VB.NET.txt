@@ -1,0 +1,508 @@
+[Options]
+Description=VB.NET
+Language=VB
+SaveAsFileTypes=Class File (*.vb)|*.vb|All Files (*.*)|*.*
+SaveAsExtension=.vb
+
+[Template1]
+Option Explicit On
+
+Imports AgentObjects
+{Rem}
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+_/  MASH - VB.NET Script Template (Single Character)
+_/  Copyright 1998-2007 by BellCraft Technologies
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+{/Rem}
+' TODO: Set Reference to: Microsoft Agent 2.0 Control
+' Select 'Add Reference...' from the VB.NET 'Project' menu
+' and on the 'COM' tab, select 'Microsoft Agent 2.0 Control'
+' Please see MASH Online Help for further instructions.
+'
+' Sample Call:
+' Dim oAgent As New MASHScript
+' oAgent.AgentMain()
+
+Public Class MASHScript
+#COPYRIGHT
+    '
+    ' * Agent Control
+    Public WithEvents AgentControl As Agent
+
+    ' * Character Objects
+#DIM_CHAR_OBJS
+
+    Private UsedChars As String
+
+	Private %CharID%ID As String
+	Private %CharID%ACS As String
+	Private %CharID%Loaded As Boolean
+    Private HideReq As IAgentCtlRequest
+    Private Req As IAgentCtlRequest
+	#DIM_CHAR_XY
+
+    Public Sub AgentMain()
+        On Error Resume Next
+
+        ' * Initialize
+        UsedChars = #USED_CHARS
+
+#CHAR_INIT
+
+        AgentControl = New Agent
+        AgentControl.Connected = True
+
+        %CharID%Loaded = LoadLocalChar(%CharID%ID, %CharID%ACS)
+
+        If Not %CharID%Loaded Then
+            ' Attempt to load default character
+            %CharID%Loaded = LoadLocalChar(%CharID%ID, "")
+        End If
+
+        If %CharID%Loaded Then
+            Call SetCharObj()
+        End If
+
+        If %CharID%Loaded Then
+            Call AgentIntro()
+        Else
+            MsgBox("This Visual Basic program requires the" & vbCrLf & "Microsoft Agent Characters:" & vbCrLf & UsedChars, vbExclamation)
+        End If
+    End Sub
+
+    Private Function LoadLocalChar(ByVal pstrCharID As String, ByVal pstrCharACS As String) As Boolean
+        ' Purpose:  Attempt to load the specified character
+        ' Returns:  True if successful, False if not
+        On Error Resume Next
+
+        If pstrCharACS = "" Then
+            AgentControl.Characters.Load(pstrCharID)
+        Else
+            AgentControl.Characters.Load(pstrCharID, pstrCharACS)
+        End If
+
+        If Err.Number = 0 Then
+            LoadLocalChar = True
+            Exit Function
+        End If
+    End Function
+
+    Private Sub SetCharObj()
+        On Error Resume Next
+
+#INIT_CHAR
+    End Sub
+
+{ScreenPos}
+    Private Sub GetScreenPositions()
+        Dim ScreenWidth As Integer
+        Dim ScreenHeight As Integer
+
+        ScreenWidth = Screen.PrimaryScreen.WorkingArea.Width
+        ScreenHeight = Screen.PrimaryScreen.WorkingArea.Height
+
+#INIT_CHAR_POS
+    End Sub
+{/ScreenPos}
+{GetDay}
+    Private Function GetDay()
+        Return DateTime.Today.ToString("dddd")
+    End Function
+
+{/GetDay}
+{GetDate}
+    Private Function GetDate() As String
+        Dim strDate As String = ""
+        Dim strDay As String = ""
+
+        strDate = DateTime.Today.ToString("mmmm")
+        strDay = DateTime.Today.Day.ToString
+
+        Select Case strDay
+            Case "11", "12", "13"
+                strDay &= "th"
+            Case Else
+                Select Case Right(strDay, 1)
+                    Case "1" : strDay &= "st"
+                    Case "2" : strDay &= "nd"
+                    Case "3" : strDay &= "rd"
+                    Case Else
+                        strDay &= "th"
+                End Select
+        End Select
+
+        Return strDate & " " & strDay & ", " & DateTime.Today.ToString("yyyy")
+    End Function
+
+{/GetDate}
+
+{GetTime}
+    Private Function GetTime() As String
+        Return DateTime.Now.ToString("h:mm tt")
+    End Function
+
+{/GetTime}
+
+{GetTimeOfDay}
+    Private Function GetTimeOfDay() As String
+        Dim timeOfDay As String = ""
+
+        Select Case DateTime.Now.Hour
+            Case Is < 12
+                timeOfDay = "Morning"
+            Case Is < 17
+                timeOfDay = "Afternoon"
+            Case Else
+                timeOfDay = "Evening"
+        End Select
+
+        Return timeOfDay
+    End Function
+
+{/GetTimeOfDay}
+
+{Commands}
+#INIT_COMMANDS
+
+{/Commands}
+
+{ShellEx}
+Private Function ShellEx(ByVal pstrDoc As String) As Integer
+	System.Diagnostics.Process.Start(pstrDoc)
+End Function
+
+{/ShellEx}
+
+    Private Sub AgentControl_DblClick(ByVal CharacterID As String, ByVal Button As Short, ByVal Shift As Short, ByVal x As Short, ByVal y As Short) Handles AgentControl.DblClick
+        ' Stop all characters on double-click
+        On Error Resume Next
+
+        %CharID%.StopAll()
+        If Not %CharID%.HasOtherClients Then
+            HideReq = %CharID%.Hide()
+        End If
+    End Sub
+
+    Private Sub AgentControl_RequestComplete(ByVal Request As Object) Handles AgentControl.RequestComplete
+        On Error Resume Next
+
+        If Not Request.Equals(HideReq) Then
+        Else
+            AgentControl.Characters.Unload(%CharID%ID)
+        End If
+    End Sub
+
+    Private Sub AgentControl_Command(ByVal UserInput As Object) Handles AgentControl.Command
+        On Error Resume Next
+
+{Commands}
+        Const BadConfidence = 10
+
+        If (UserInput.Confidence <= -40) Then
+            ' Bad Recognition
+            Exit Sub
+        ElseIf (UserInput.Alt1Name <> "") And Math.Abs(Math.Abs(UserInput.Alt1Confidence) - Math.Abs(UserInput.Confidence)) < BadConfidence Then
+            ' Bad Confidence - too close to another command
+            Exit Sub
+        ElseIf (UserInput.Alt2Name <> "") And Math.Abs(Math.Abs(UserInput.Alt2Confidence) - Math.Abs(UserInput.Confidence)) < BadConfidence Then
+            ' Bad Confidence - too close to another command
+            Exit Sub
+        Else ' High Confidence
+            ' *** BEGIN MASH USER COMMANDS ***
+#COMMAND_SCRIPT
+            ' *** END MASH USER COMMANDS ***
+        End If
+{/Commands}
+    End Sub
+
+    Private Sub AgentControl_Bookmark1(ByVal BookmarkID As Integer) Handles AgentControl.Bookmark
+        On Error Resume Next
+
+{Bookmarks}
+        ' *** BEGIN MASH USER BOOKMARKS ***
+#BOOKMARK_SCRIPT
+        ' *** END MASH USER BOOKMARKS ***
+{/Bookmarks}
+    End Sub
+
+    Private Sub AgentIntro()
+        On Error Resume Next
+
+{ScreenPos}
+    GetScreenPositions()
+{/ScreenPos}
+{Commands}
+    InitAgentCommands()
+{/Commands}
+
+        ' *** BEGIN MASH USER SCRIPT ***
+
+#MAIN_SCRIPT
+
+        ' *** END MASH USER SCRIPT ***
+    End Sub
+    '_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+End Class
+[Template2]
+Option Explicit On
+
+Imports AgentObjects
+{Rem}
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+_/  MASH - VB.NET Script Template (Multiple Characters)
+_/  Copyright 1998-2007 by BellCraft Technologies
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+{/Rem}
+' TODO: Set Reference to: Microsoft Agent 2.0 Control
+' Select 'Add Reference...' from the VB.NET 'Project' menu
+' and on the 'COM' tab, select 'Microsoft Agent 2.0 Control'
+' Please see MASH Online Help for further instructions.
+'
+' Sample Call:
+' Dim oAgent As New MASHScript
+' oAgent.AgentMain()
+
+Public Class MASHScript
+#COPYRIGHT
+    '
+    ' * Agent Control
+    Public WithEvents AgentControl As Agent
+
+    ' * Character Objects
+#DIM_CHAR_OBJS
+
+	Private CharCount As Integer
+    Private UsedChars As String
+
+	Private CharID(#CHAR_COUNT) As String
+	Private CharACS(#CHAR_COUNT) As String
+	Private Loaded(#CHAR_COUNT) As Boolean
+	Private HideReq(#CHAR_COUNT) As IAgentCtlRequest
+    Private Req As IAgentCtlRequest
+	#DIM_CHAR_XY
+
+    Public Sub AgentMain()
+        On Error Resume Next
+
+        Dim fAllLoaded As Boolean
+        Dim i As Integer
+
+        ' * Initialize
+		CharCount = #CHAR_COUNT
+        UsedChars = #USED_CHARS
+
+#CHAR_INIT
+
+        AgentControl = New Agent
+        AgentControl.Connected = True
+
+	    For i = 1 To CharCount
+	        Loaded(i) = LoadLocalChar(CharID(i), CharACS(i))
+
+	        If Loaded(i) Then
+	            Call SetCharObj(i)
+	        End If
+	    Next
+
+	    fAllLoaded = True
+	    For i = 1 To CharCount
+	       fAllLoaded = fAllLoaded And Loaded(i)
+	    Next
+
+	    If fAllLoaded Then
+	        Call AgentIntro
+	    Else
+	        MsgBox "This Visual Basic program requires the" & vbCrLf & "Microsoft Agent Characters:" & vbCrLf & UsedChars, vbExclamation
+	    End If
+    End Sub
+
+    Private Function LoadLocalChar(ByVal pstrCharID As String, ByVal pstrCharACS As String) As Boolean
+        ' Purpose:  Attempt to load the specified character
+        ' Returns:  True if successful, False if not
+        On Error Resume Next
+
+        If pstrCharACS = "" Then
+            AgentControl.Characters.Load(pstrCharID)
+        Else
+            AgentControl.Characters.Load(pstrCharID, pstrCharACS)
+        End If
+
+        If Err.Number = 0 Then
+            LoadLocalChar = True
+            Exit Function
+        End If
+    End Function
+
+    Private Sub SetCharObj()
+        On Error Resume Next
+
+#INIT_CHAR
+    End Sub
+
+	Private Sub WaitFor(ByVal Req As IAgentCtlRequest)
+	    On Error Resume Next
+	    Dim i As Integer
+
+	    For i = 1 To CharCount
+	        AgentControl.Characters(CharID(i)).Wait Req
+	    Next
+	End Sub
+
+{ScreenPos}
+    Private Sub GetScreenPositions()
+        Dim ScreenWidth As Integer
+        Dim ScreenHeight As Integer
+
+        ScreenWidth = Screen.PrimaryScreen.WorkingArea.Width
+        ScreenHeight = Screen.PrimaryScreen.WorkingArea.Height
+
+#INIT_CHAR_POS
+    End Sub
+{/ScreenPos}
+{GetDay}
+    Private Function GetDay()
+        Return DateTime.Today.ToString("dddd")
+    End Function
+
+{/GetDay}
+{GetDate}
+    Private Function GetDate() As String
+        Dim strDate As String = ""
+        Dim strDay As String = ""
+
+        strDate = DateTime.Today.ToString("mmmm")
+        strDay = DateTime.Today.Day.ToString
+
+        Select Case strDay
+            Case "11", "12", "13"
+                strDay &= "th"
+            Case Else
+                Select Case Right(strDay, 1)
+                    Case "1" : strDay &= "st"
+                    Case "2" : strDay &= "nd"
+                    Case "3" : strDay &= "rd"
+                    Case Else
+                        strDay &= "th"
+                End Select
+        End Select
+
+        Return strDate & " " & strDay & ", " & DateTime.Today.ToString("yyyy")
+    End Function
+
+{/GetDate}
+
+{GetTime}
+    Private Function GetTime() As String
+        Return DateTime.Now.ToString("h:mm tt")
+    End Function
+
+{/GetTime}
+
+{GetTimeOfDay}
+    Private Function GetTimeOfDay() As String
+        Dim timeOfDay As String = ""
+
+        Select Case DateTime.Now.Hour
+            Case Is < 12
+                timeOfDay = "Morning"
+            Case Is < 17
+                timeOfDay = "Afternoon"
+            Case Else
+                timeOfDay = "Evening"
+        End Select
+
+        Return timeOfDay
+    End Function
+
+{/GetTimeOfDay}
+
+{Commands}
+#INIT_COMMANDS
+
+{/Commands}
+
+{ShellEx}
+Private Function ShellEx(ByVal pstrDoc As String) As Integer
+	System.Diagnostics.Process.Start(pstrDoc)
+End Function
+
+{/ShellEx}
+
+    Private Sub AgentControl_DblClick(ByVal CharacterID As String, ByVal Button As Short, ByVal Shift As Short, ByVal x As Short, ByVal y As Short) Handles AgentControl.DblClick
+        ' Stop all characters on double-click
+        On Error Resume Next
+
+	    Dim i As Integer
+
+	    For i = 1 To CharCount
+	        AgentControl.Characters(CharID(i)).StopAll
+	        If Not AgentControl.Characters(CharID(i)).HasOtherClients Then
+	            Set HideReq(i) = AgentControl.Characters(CharID(i)).Hide()
+	        End If
+	    Next
+    End Sub
+
+    Private Sub AgentControl_RequestComplete(ByVal Request As Object) Handles AgentControl.RequestComplete
+        On Error Resume Next
+
+	    Dim i As Integer
+
+	    For i = 1 To CharCount
+	        If Request <> HideReq(i) Then
+	        Else
+	            AgentControl.Characters.Unload CharID(i)
+	        End If
+	    Next
+    End Sub
+
+    Private Sub AgentControl_Command(ByVal UserInput As Object) Handles AgentControl.Command
+        On Error Resume Next
+
+{Commands}
+        Const BadConfidence = 10
+
+        If (UserInput.Confidence <= -40) Then
+            ' Bad Recognition
+            Exit Sub
+        ElseIf (UserInput.Alt1Name <> "") And Math.Abs(Math.Abs(UserInput.Alt1Confidence) - Math.Abs(UserInput.Confidence)) < BadConfidence Then
+            ' Bad Confidence - too close to another command
+            Exit Sub
+        ElseIf (UserInput.Alt2Name <> "") And Math.Abs(Math.Abs(UserInput.Alt2Confidence) - Math.Abs(UserInput.Confidence)) < BadConfidence Then
+            ' Bad Confidence - too close to another command
+            Exit Sub
+        Else ' High Confidence
+            ' *** BEGIN MASH USER COMMANDS ***
+#COMMAND_SCRIPT
+            ' *** END MASH USER COMMANDS ***
+        End If
+{/Commands}
+    End Sub
+
+    Private Sub AgentControl_Bookmark1(ByVal BookmarkID As Integer) Handles AgentControl.Bookmark
+        On Error Resume Next
+
+{Bookmarks}
+        ' *** BEGIN MASH USER BOOKMARKS ***
+#BOOKMARK_SCRIPT
+        ' *** END MASH USER BOOKMARKS ***
+{/Bookmarks}
+    End Sub
+
+    Private Sub AgentIntro()
+        On Error Resume Next
+
+{ScreenPos}
+    GetScreenPositions()
+{/ScreenPos}
+{Commands}
+    InitAgentCommands()
+{/Commands}
+
+        ' *** BEGIN MASH USER SCRIPT ***
+
+#MAIN_SCRIPT
+
+        ' *** END MASH USER SCRIPT ***
+    End Sub
+    '_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+End Class

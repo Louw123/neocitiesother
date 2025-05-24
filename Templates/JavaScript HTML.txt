@@ -1,0 +1,766 @@
+[Options]
+Description=JavaScript HTML
+Language=JavaScript
+SaveAsExtension=.htm
+SaveAsFileTypes=HTML Files (*.htm)|*.htm|All Files (*.*)|*.*
+
+[Template1]
+{Rem}
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+_/  MASH - JavaScript Template (Single Character)
+_/  Copyright 1998-2004 by BellCraft Technologies
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+{/Rem}
+<object id="AgentControl" width="0" height="0"
+  classid="CLSID:D45FD31B-5C6E-11D1-9EC1-00C04FD7081F"
+  codebase="#VERSION=2,0,0,0">
+</object>
+
+<object id="L&HTruVoice" width="0" height="0"
+  classid="CLSID:B8F2846E-CE36-11D0-AC83-00C04FD97575"
+  codebase="#VERSION=6,0,0,0">
+</object>
+
+{SpeechRec}
+<object id="MSSpeechRecognition" width="0" height="0"
+  classid="CLSID:161FA781-A52C-11D0-8D7C-00A0C9034A7E"
+  codebase="#VERSION=4,0,0,0">
+</object>
+
+{/SpeechRec}
+<script language="JavaScript" type="text/javascript" type="text/javascript">
+<!--//
+/*
+#COPYRIGHT
+*/
+
+// * Character Objects
+#DIM_CHAR_OBJS
+
+// * Variables
+var UsedChars;
+var %CharID%ID;
+var %CharID%ACS;
+{WebLoad}
+var %CharID%URL;
+var %CharID%States;
+var %CharID%Animations;
+var %CharID%Req;
+var %CharID%StatesReq;
+var %CharID%AnimationsReq;
+{/WebLoad}
+var %CharID%Loaded;
+var LoadReq;
+var HideReq;
+#DIM_CHAR_XY
+
+// * Initialize
+UsedChars = #USED_CHARS;
+
+#CHAR_INIT
+
+Window_OnLoad();
+
+function Window_OnLoad() {
+    // Purpose:  Runs automatically when page is loaded
+
+    // * INSERT ANY NON-AGENT RELATED SCRIPTING HERE
+
+    AgentControl.Connected = true;
+
+    %CharID%Loaded = LoadLocalChar(%CharID%ID, %CharID%ACS);
+
+    if (!%CharID%Loaded) {
+        // Attempt to load default character
+        %CharID%Loaded = LoadLocalChar(%CharID%ID, "");
+    }
+
+    if (%CharID%Loaded) {
+        SetCharObj();
+    }
+    CheckLoadStatus();
+}
+
+function LoadLocalChar(CharID, CharACS) {
+    // Purpose:  Attempts to load the specified character
+    // Returns:  true if successful, false if not
+
+    AgentControl.RaiseRequestErrors = false;
+    if (CharACS == "") {
+{WebLoad}
+    	if (CharID != "Char") {
+    		return(false);
+    	}
+{/WebLoad}
+
+        LoadReq = AgentControl.Characters.Load(CharID);
+    }
+    else {
+        LoadReq = AgentControl.Characters.Load(CharID, CharACS);
+    }
+    AgentControl.RaiseRequestErrors = true;
+
+    if (LoadReq.Status != 1) {
+        return(true);
+    }
+    return(false);
+}
+
+function SetCharObj() {
+    // Purpose:  Sets the character reference and TTS Language ID
+
+#INIT_CHAR
+}
+
+function CheckLoadStatus() {
+    // Purpose:  Determines if required characters have been loaded.
+    //           If not, issue request to load next character
+    //           else run the AgentIntro routine
+
+    if (!%CharID%Loaded) {
+{WebLoad}
+        window.status = "Loading " + %CharID%ID + " Character.  Please Wait...";
+        %CharID%Req = AgentControl.Characters.Load(%CharID%ID, %CharID%URL);
+        return(false);
+{/WebLoad}
+{LocalOnly}
+        LoadError();
+        return(false);
+{/LocalOnly}
+    }
+
+    window.status = "";
+    AgentIntro();
+    return(true);
+}
+
+function LoadError() {
+    var strMsg;
+    window.status = "";
+    strMsg = "Error Loading Character: " + %CharID%ID + "\n";
+    strMsg = strMsg + "This Microsoft Agent Script requires the character(s):\n";
+    strMsg = strMsg + UsedChars;
+    alert(strMsg);
+}
+{ScreenPos}
+function GetScreenPositions() {
+    var ScreenWidth = window.screen.width;
+    var ScreenHeight = window.screen.height;
+
+    if ((ScreenWidth == 0) || (ScreenHeight == 0)) {
+        ScreenWidth = 800;
+        ScreenHeight = 600;
+    }
+
+#INIT_CHAR_POS
+}
+
+{/ScreenPos}
+{GetDay}
+function GetDay() {
+    // Purpose:  Returns current weekday name
+    var aDay = new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday");
+    var d;
+    d = new Date();
+    return(aDay[d.getDay()]);
+}
+
+{/GetDay}
+{GetDate}
+function GetDate() {
+    // Purpose:  Returns current long date
+    var aMon = new Array("January","February","March","April","May","June","July","August","September","October","November","December");
+    var d = new Date();
+    var sDay = d.getDate().toString();
+    var sYear = d.getYear();
+
+    if (sYear < 100)
+        sYear += 1900;
+
+    if ((sDay == "11") || (sDay == "12") || (sDay == "13"))
+        sDay += "th";
+    else {
+        switch(sDay.charAt(sDay.length - 1)) {
+        case "1": sDay += "st"; break;
+        case "2": sDay += "nd"; break;
+        case "3": sDay += "rd"; break;
+        default : sDay += "th"; break;
+        }
+    }
+
+    return(aMon[d.getMonth()] + " " + sDay + ", " + sYear);
+}
+
+{/GetDate}
+{GetTime}
+function GetTime() {
+    // Purpose:  Returns current time
+    var d = new Date();
+    var h = d.getHours();
+    var m = d.getMinutes().toString();
+    var c = (h < 12) ? " AM" : " PM";
+
+    h = (h == 0) ? 12 : h;
+    h = (h > 12) ? h - 12 : h;
+
+    if (m.length == 1)
+        m = "0" + m;
+
+    return(h + ":" + m + c);
+}
+
+{/GetTime}
+{GetTimeOfDay}
+function GetTimeOfDay() {
+    // Purpose:  Returns current time of day
+    var d = new Date();
+    var h = d.getHours();
+
+    if (h < 12)
+        return("Morning");
+    else if (h < 17)
+        return("Afternoon");
+    else
+        return("Evening");
+}
+
+{/GetTimeOfDay}
+{Commands}
+#INIT_COMMANDS
+
+{/Commands}
+function AgentIntro() {
+{ScreenPos}
+    GetScreenPositions();
+{/ScreenPos}
+{Commands}
+    InitAgentCommands();
+{/Commands}
+
+    // *** BEGIN MASH USER SCRIPT ***
+
+#MAIN_SCRIPT
+
+    // *** END MASH USER SCRIPT ***
+}
+//-->
+</script>
+
+<script language="JavaScript" type="text/javascript" for="AgentControl" event="RequestComplete(RequestObject)">
+<!--//
+    // Purpose:  Take action on completion or failure of requests
+
+{WebLoad}
+{
+    switch (RequestObject) {
+    case %CharID%Req :
+        if (RequestObject.Status == 0) {
+            SetCharObj();
+
+            // Get Show Animation, required in JavaScript
+            %CharID%.Get("Animation", "Show", false);
+
+            if (%CharID%States != "") {
+                window.status = "Loading " + %CharID%ID + " States.  Please Wait...";
+                %CharID%StatesReq = AgentControl.Characters(%CharID%ID).Get("State", %CharID%States, true);
+            }
+            else if (%CharID%Animations != "") {
+                window.status = "Loading " + %CharID%ID + " Animations.  Please Wait...";
+                %CharID%AnimationsReq = AgentControl.Characters(%CharID%ID).Get("Animation", %CharID%Animations, true);
+            }
+            else {
+                %CharID%Loaded = true;
+                CheckLoadStatus();
+            }
+        }
+        else {
+            LoadError();
+        }
+        break;
+    case %CharID%StatesReq :
+        if (RequestObject.Status == 0) {
+            if (%CharID%Animations != "") {
+                window.status = "Loading " + %CharID%ID + " Animations.  Please Wait...";
+                %CharID%AnimationsReq = AgentControl.Characters(%CharID%ID).Get("Animation", %CharID%Animations, true);
+            }
+            else {
+                %CharID%Loaded = true;
+                CheckLoadStatus();
+            }
+        }
+        else
+        {
+            LoadError();
+        }
+        break;
+    case %CharID%AnimationsReq :
+        if (RequestObject.Status == 0)
+        {
+            %CharID%Loaded = true;
+            CheckLoadStatus();
+        }
+        else
+        {
+            LoadError();
+        }
+        break;
+    case HideReq :
+        AgentControl.Characters.Unload(%CharID%ID);
+        break;
+    } // end switch
+}
+{/WebLoad}
+//-->
+</script>
+
+<script language="JavaScript" type="text/javascript" for="AgentControl" event="Command(UserInput)">
+<!--//
+    // Purpose:  Determine Command that was selected either by menu or voice
+    //           and run the applicable Command Script
+{Commands}
+    var BadConfidence;
+    BadConfidence = 10;
+
+    if (UserInput.Confidence <= -40)
+    {
+        // Bad Recognition
+    }
+    else if ((UserInput.Alt1Name != "") && (Math.abs(Math.abs(UserInput.Alt1Confidence) - Math.abs(UserInput.Confidence)) < BadConfidence))
+    {
+        // Bad Confidence - too close to another command
+    }
+    else if ((UserInput.Alt2Name != "") && (Math.abs(Math.abs(UserInput.Alt1Confidence) - Math.abs(UserInput.Confidence)) < BadConfidence))
+    {
+        // Bad Confidence - too close to another command
+    }
+    else
+    {
+        // High Confidence
+        // *** BEGIN MASH USER COMMANDS ***
+#COMMAND_SCRIPT
+        // *** END MASH USER COMMANDS ***
+    }
+{/Commands}
+//-->
+</script>
+
+
+<script language="JavaScript" type="text/javascript" for="AgentControl" event="Bookmark(BookmarkID)">
+<!--//
+{Bookmarks}
+    // *** BEGIN MASH USER BOOKMARKS ***
+#BOOKMARK_SCRIPT
+    // *** END MASH USER BOOKMARKS ***
+{/Bookmarks}
+//-->
+</script>
+
+<script language="JavaScript" type="text/javascript" for="AgentControl" event="Click(CharacterID, Button, Shift, X, Y)">
+<!--
+    // Insert Click Event Code Here
+-->
+</script>
+
+<script language="JavaScript" type="text/javascript" for="AgentControl" event="DblClick(CharacterID, Button, Shift, X, Y)">
+<!--
+    // Purpose:  Stop and Hide all characters on double-click
+
+    %CharID%.StopAll();
+    if (!%CharID%.HasOtherClients) {
+        if (%CharID%.Visible) {
+            HideReq = %CharID%.Hide();
+        }
+        else {
+            AgentControl.Characters.Character.Unload(%CharID%ID);
+        }
+    }
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+//-->
+</script>
+
+[Template2]
+{Rem}
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+_/  MASH - JavaScript Template (Multiple Characters)
+_/  Copyright 1998-2004 by BellCraft Technologies
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+{/Rem}
+<object id="AgentControl" width=0 height=0
+  classid="CLSID:D45FD31B-5C6E-11D1-9EC1-00C04FD7081F"
+  codebase="#VERSION=2,0,0,0">
+</object>
+
+<object id="L&HTruVoice" width=0 height=0
+  classid="CLSID:B8F2846E-CE36-11D0-AC83-00C04FD97575"
+  codebase="#VERSION=6,0,0,0">
+</object>
+
+{SpeechRec}
+<object id="MSSpeechRecognition" width=0 height=0
+  classid="CLSID:161FA781-A52C-11D0-8D7C-00A0C9034A7E"
+  codebase="#VERSION=4,0,0,0">
+</object>
+
+{/SpeechRec}
+<script language="JavaScript" type="text/javascript">
+<!--//
+/*
+#COPYRIGHT
+*/
+
+// * Character Objects
+#DIM_CHAR_OBJS
+
+// * Variables
+var CharCount;
+var UsedChars;
+var CharID = new Array(#CHAR_COUNT);
+var CharACS = new Array(#CHAR_COUNT);
+{WebLoad}
+var CharURL = new Array(#CHAR_COUNT);
+var States = new Array(#CHAR_COUNT);
+var Animations = new Array(#CHAR_COUNT);
+var CharReq = new Array(#CHAR_COUNT);
+var StatesReq = new Array(#CHAR_COUNT);
+var AnimationsReq = new Array(#CHAR_COUNT);
+{/WebLoad}
+var Loaded = new Array(#CHAR_COUNT);
+var HideReq = new Array(#CHAR_COUNT);
+var LoadReq;
+#DIM_CHAR_XY
+
+// * Initialize
+CharCount = #CHAR_COUNT;
+UsedChars = #USED_CHARS;
+
+#CHAR_INIT
+
+Window_OnLoad();
+
+function Window_OnLoad() {
+    // Purpose:  Runs automatically when page is loaded
+
+    var i;
+
+    // * INSERT ANY NON-AGENT RELATED SCRIPTING HERE
+
+    AgentControl.Connected = true;
+
+    for(i = 1; i <= CharCount; i++) {
+        Loaded[i] = LoadLocalChar(CharID[i], CharACS[i]);
+
+        if (Loaded[i]) {
+            SetCharObj(i);
+        }
+    }
+    CheckLoadStatus();
+}
+
+function LoadLocalChar(CharID, CharACS) {
+    // Purpose:  Attempts to load the specified character
+    // Returns:  true if successful, false if not
+
+    AgentControl.RaiseRequestErrors = false;
+    LoadReq = AgentControl.Characters.Load(CharID, CharACS);
+    AgentControl.RaiseRequestErrors = true;
+
+    if (LoadReq.Status != 1) {
+        return(true);
+    }
+    return(false);
+}
+
+function SetCharObj(i) {
+    // Purpose:  Sets the character reference and TTS Language ID
+
+#INIT_CHAR
+}
+
+function CheckLoadStatus() {
+    // Purpose:  Determines if required characters have been loaded.
+    //           If not, issue request to load next character
+    //           else run the AgentIntro routine
+    var i;
+
+    for (i = 1; i <= CharCount; i++) {
+        if (!Loaded[i]) {
+{WebLoad}
+            window.status = "Loading " + CharID[i] + " Character.  Please Wait...";
+            CharReq[i] = AgentControl.Characters.Load(CharID[i], CharURL[i]);
+            return(false);
+{/WebLoad}
+{LocalOnly}
+            LoadError(i);
+            return(false);
+{/LocalOnly}
+        }
+    }
+
+    window.status = "";
+    AgentIntro();
+    return(true);
+}
+
+function LoadError(i) {
+    var strMsg;
+    window.status = "";
+    strMsg = "Error Loading Character: " + CharID[i] + "\n";
+    strMsg = strMsg + "This Microsoft Agent Script requires the character(s):\n";
+    strMsg = strMsg + UsedChars;
+    alert(strMsg);
+}
+
+function WaitFor(Req) {
+    // Purpose:  Make characters wait until request is completed
+    var i;
+
+    AgentControl.RaiseRequestErrors = false;
+    for (i = 1; i <= CharCount; i++) {
+        AgentControl.Characters.Character(CharID[i]).Wait(Req);
+    }
+    AgentControl.RaiseRequestErrors = true;
+}
+{ScreenPos}
+function GetScreenPositions() {
+    var ScreenWidth = window.screen.width;
+    var ScreenHeight = window.screen.height;
+
+    if ((ScreenWidth == 0) || (ScreenHeight == 0)) {
+        ScreenWidth = 800;
+        ScreenHeight = 600;
+    }
+
+#INIT_CHAR_POS
+}
+
+{/ScreenPos}
+{GetDay}
+function GetDay() {
+    // Purpose:  Returns current weekday name
+    var aDay = new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday");
+    var d;
+    d = new Date();
+    return(aDay[d.getDay()]);
+}
+
+{/GetDay}
+{GetDate}
+function GetDate() {
+    // Purpose:  Returns current long date
+    var aMon = new Array("January","February","March","April","May","June","July","August","September","October","November","December");
+    var d = new Date();
+    var sDay = d.getDate().toString();
+    var sYear = d.getYear();
+
+    if (sYear < 100)
+        sYear += 1900;
+
+    if ((sDay == "11") || (sDay == "12") || (sDay == "13"))
+        sDay += "th";
+    else {
+        switch(sDay.charAt(sDay.length - 1)) {
+        case "1": sDay += "st"; break;
+        case "2": sDay += "nd"; break;
+        case "3": sDay += "rd"; break;
+        default : sDay += "th"; break;
+        }
+    }
+
+    return(aMon[d.getMonth()] + " " + sDay + ", " + sYear);
+}
+
+{/GetDate}
+{GetTime}
+function GetTime() {
+    // Purpose:  Returns current time
+    var d = new Date();
+    var h = d.getHours();
+    var m = d.getMinutes().toString();
+    var c = (h < 12) ? " AM" : " PM";
+
+    h = (h == 0) ? 12 : h;
+    h = (h > 12) ? h - 12 : h;
+
+    if (m.length == 1)
+        m = "0" + m;
+
+    return(h + ":" + m + c);
+}
+
+{/GetTime}
+{GetTimeOfDay}
+function GetTimeOfDay() {
+    // Purpose:  Returns current time of day
+    var d = new Date();
+    var h = d.getHours();
+
+    if (h < 12)
+        return("Morning");
+    else if (h < 17)
+        return("Afternoon");
+    else
+        return("Evening");
+}
+
+{/GetTimeOfDay}
+{Commands}
+#INIT_COMMANDS
+
+{/Commands}
+function AgentIntro() {
+{ScreenPos}
+    GetScreenPositions();
+{/ScreenPos}
+{Commands}
+    InitAgentCommands();
+{/Commands}
+
+    // *** BEGIN MASH USER SCRIPT ***
+
+#MAIN_SCRIPT
+
+    // *** END MASH USER SCRIPT ***
+}
+//-->
+</script>
+
+<script language="JavaScript" type="text/javascript" for="AgentControl" event="RequestComplete(RequestObject)">
+<!--//
+    // Purpose:  Take action on completion or failure of requests
+
+{WebLoad}
+{
+    var i;
+
+    for (i = 1; i <= CharCount; i++) {
+        switch (RequestObject) {
+        case CharReq[i] :
+            if (RequestObject.Status == 0) {
+                SetCharObj(i);
+
+                AgentControl.Characters(CharID[i]).Get("Animation", "Show", false);
+
+                if (States[i] != "") {
+                    window.status = "Loading " + CharID[i] + " States.  Please Wait...";
+
+                    StatesReq[i] = AgentControl.Characters(CharID[i]).Get("State", States[i], true);
+                }
+                else if (Animations[i] != "") {
+                    window.status = "Loading " + CharID[i] + " Animations.  Please Wait...";
+                    AnimationsReq[i] = AgentControl.Characters(CharID[i]).Get("Animation", Animations[i], true);
+                }
+                else {
+                    Loaded[i] = true;
+                    CheckLoadStatus();
+                }
+            }
+            else {
+                LoadError();
+            }
+            break;
+        case StatesReq[i] :
+            if (RequestObject.Status == 0) {
+                if (Animations[i] != "") {
+                    window.status = "Loading " + CharID[i] + " Animations.  Please Wait...";
+                    AnimationsReq[i] = AgentControl.Characters(CharID[i]).Get("Animation", Animations[i], true);
+                }
+                else {
+                    Loaded[i] = true;
+                    CheckLoadStatus();
+                }
+            }
+            else
+            {
+                LoadError();
+            }
+            break;
+        case AnimationsReq[i] :
+            if (RequestObject.Status == 0)
+            {
+                Loaded[i] = true;
+                CheckLoadStatus();
+            }
+            else
+            {
+                LoadError();
+            }
+            break;
+        case HideReq[i] :
+            AgentControl.Characters.Unload(CharID[i]);
+            break;
+        } // end switch
+    } // next
+}
+{/WebLoad}
+//-->
+</script>
+
+<script language="JavaScript" type="text/javascript" for="AgentControl" event="Command(UserInput)">
+<!--//
+    // Purpose:  Determine Command that was selected either by menu or voice
+    //           and run the applicable Command Script
+{Commands}
+    var BadConfidence;
+    BadConfidence = 10;
+
+    if (UserInput.Confidence <= -40)
+    {
+        // Bad Recognition
+    }
+    else if ((UserInput.Alt1Name != "") && (Math.abs(Math.abs(UserInput.Alt1Confidence) - Math.abs(UserInput.Confidence)) < BadConfidence))
+    {
+        // Bad Confidence - too close to another command
+    }
+    else if ((UserInput.Alt2Name != "") && (Math.abs(Math.abs(UserInput.Alt1Confidence) - Math.abs(UserInput.Confidence)) < BadConfidence))
+    {
+        // Bad Confidence - too close to another command
+    }
+    else
+    {
+        // High Confidence
+        // *** BEGIN MASH USER COMMANDS ***
+#COMMAND_SCRIPT
+        // *** END MASH USER COMMANDS ***
+    }
+{/Commands}
+//-->
+</script>
+
+
+<script language="JavaScript" type="text/javascript" for="AgentControl" event="Bookmark(BookmarkID)">
+<!--//
+{Bookmarks}
+    // *** BEGIN MASH USER BOOKMARKS ***
+#BOOKMARK_SCRIPT
+    // *** END MASH USER BOOKMARKS ***
+{/Bookmarks}
+//-->
+</script>
+
+
+<script language="JavaScript" type="text/javascript" for="AgentControl" event="Click(CharacterID, Button, Shift, X, Y)">
+<!--
+    // Insert Click Event Code Here
+-->
+</script>
+
+<script language="JavaScript" type="text/javascript" for="AgentControl" event="DblClick(CharacterID, Button, Shift, X, Y)">
+<!--
+    // Purpose:  Stop and Hide all characters on double-click
+    var i;
+
+    for (i = 1; i <= CharCount; i++)
+    {
+        AgentControl.Characters.Character(CharID[i]).StopAll();
+        if (!AgentControl.Characters.Character(CharID[i]).HasOtherClients) {
+            if (AgentControl.Characters.Character(CharID[i]).Visible) {
+                HideReq[i] = AgentControl.Characters.Character(CharID[i]).Hide();
+            }
+            else {
+                AgentControl.Characters.Character.Unload(CharID[i]);
+            }
+        }
+    }
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+//-->
+</script>

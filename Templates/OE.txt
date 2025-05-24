@@ -1,0 +1,24 @@
+Subject: *MASH Script Inside*
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_001C_01BE9E4B.69C05220"
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Unsent: 1
+X-MimeOLE: Produced By Microsoft MimeOLE V5.00.2014.211
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_001C_01BE9E4B.69C05220
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+------=_NextPart_000_001C_01BE9E4B.69C05220
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+#MASHSCRIPT
+
+------=_NextPart_000_001C_01BE9E4B.69C05220--
