@@ -1,0 +1,200 @@
+[MASH Script]
+Version=7.0
+
+[Characters]
+Genie=Genie.acs
+
+[LanguageIDs]
+Genie=&H409
+
+[Script]
+OpenWindow "Main"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Show
+OpenWindow "Main"
+Genie.Play "Greet"
+Genie.Speak "Good " & GetTimeOfDay() & "!"
+Genie.Play "Explain"
+Genie.Speak "Welcome to \map=""mash""=""MASH!""\"
+Genie.Play "Announce"
+Genie.Speak "The Microsoft Agent Scripting Helper!"
+
+Genie.Play "Suggest"
+Genie.Speak "I am Genie, your humble tour guide."
+Genie.Speak "Just sit back and watch this short tour, and you'll be directing entertaining Microsoft Agent \map=""prezzentations""=""presentations,""\  in no time."
+
+Genie.Play "Acknowledge"
+Genie.Speak "You can stop the tour by clicking the Stop button on the Toolbar or pressing the F5 key."
+Genie.Play "Process"
+
+MoveToControl frmMASHScript.chkAutoAddToScript, Genie, +260, +60
+Genie.Play "GestureRight"
+Genie.Speak "For new users, and simple \map=""prezzentations""=""presentations,""\ it is recommended that the 'Auto-Add Actions to Script' option is checked."
+Genie.Speak "This automatically adds Play, Speak, Move and other actions to the script, when they are performed."
+Genie.Play "GestureDown"
+Genie.Speak "The current script is located down here.  It looks a little complex now, since this tour is actually an advanced MASH script itself.  Pretty cool, huh?"
+Genie.Play "Idle2_1"
+Genie.Speak "The script can be manually edited, if needed."
+
+Genie.Speak "On the Script menu, there is a useful 'Find and Replace' command.  You may also select a custom  'Script Font'."
+Genie.Speak "When you Right-Click on a line in the script, a popup menu will display additional commands like Play Line, Play Selection, Play to Cursor, and more."
+MoveToControl frmMASHScript.cmdAddLastAction, Genie, -210, +50
+Genie.Play "GestureLeft"
+Genie.Speak "When Auto-Add is unchecked, you can test actions and add them to your script by clicking the Add Last Action button here."
+Genie.Speak "The button text changes depending on the previous action performed."
+
+MoveToControl frmMASHMain.fraChar, Genie, -300, -80
+Genie.Play "GestureRight"
+Genie.Speak "The first step in creating a new MASH \map=""prezzentation""=""presentation""\ is to select your character cast from the Character list, and click the Show button."
+Genie.Play "RestPose"
+Genie.Speak "You may include multiple characters in your \map=""prezzentation""=""presentation.""\"
+Genie.Speak "However, only one character may be active at a time to perform selected actions.  This is referred to as the Active Character."
+Genie.Speak "The Name of the Active Character is displayed in the status bar, and also in the character list."
+Genie.Speak "To change the Active Character, simply click on it, or re-select its name from the character list."
+
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "Explain"
+Genie.Speak "When a Character is first shown, it will appear here in the Character Box so you can easily find it."
+Genie.Play "RestPose"
+Genie.Speak "Characters can be positioned by simply clicking on them with your mouse, and dragging them across the screen."
+
+MoveToControl frmMASHMain.cboChar, Genie, +0, +60
+Genie.Play "Explain"
+Genie.Speak "Some predefined screen positions can also be used in the Move To drop-down lists."
+
+MoveToControl frmMASHMain.cboChar, Genie, +0, +120
+Genie.Play "Explain"
+Genie.Speak "The Gesture At boxes work much like the Move To boxes, except this is a screen position where the character will point."
+Genie.Speak "But you will find that most characters have Gesture and Look animations that are easier to use."
+
+MoveToControl frmMASHMain.cboAnimation, Genie, +120, +70
+Genie.Play "GestureRight"
+Genie.Speak "Each character has a unique set of animations that can be used to express various emotions."
+Genie.Speak "Select an Animation from the Animations list, and the character will automatically display it."
+Genie.Play "GestureLeft"
+Genie.Speak "Click the Play Animation button to add it to your script."
+
+MoveToControl frmMASHMain.txtSpeak, Genie, +120, +50
+Genie.Play "GestureRight"
+Genie.Speak "Type what you would like the character to say in the Speak text box here. "
+Genie.Speak "Then click the Speak button to have the Active Character speak it."
+Genie.Speak "Now, guess what the Whisper and Think buttons do.  Huh?"
+
+MoveToControl frmMASHMain.cmdShowAndTell, Genie
+Genie.Speak "If you would  like to see all of a character's animations, you can do so by clicking the Show and Tell button here."
+Genie.Speak "Also, check out the Character Introductions on the Character menu.  It will have each of your installed characters introduce themselves."
+
+OpenWindow "Adv Speak"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Advanced Speak window allows you to adjust the pitch and speed of the Active Character's voice."
+Genie.Speak "MASH remembers the Advanced Speak settings you select for each character, for future sessions."
+Genie.Speak "You will noticed the 'Use Adv Speak Tags' option located in other MASH windows, allowing these voice modifiers to be used elsewhere."
+
+OpenWindow "Map Text"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Map Text window allows you to speak one thing but show something different in the character balloon."
+Genie.Speak "This is useful for words that the TTS Engine does not pronounce properly."
+Genie.Speak "The Example button will cycle through various Map Text examples."
+
+OpenWindow "Speak Wave"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Speak Wave window allows you to select an audio Wave File that the character will speak, using closely matched mouth movement."
+
+OpenWindow "Date/Time"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Date/Time window allows you to speak the current date and time in various formats."
+
+OpenWindow "Character Size"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Character Size window allows you to adjust the character's size."
+
+OpenWindow "Sing"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Sing window allows you to compose songs.  This can be a time consuming task and only works with some TTS Engines.  Some really impressive songs have been created by a number of MASH users."
+
+OpenWindow "TTS Voice"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The TTS Voice window allows you to change the TTS Engine and Language for characters."
+Genie.Speak "You can have a character change voices or languages during your script by using Bookmarks."
+
+OpenWindow "Balloon Font"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Balloon Font window allows you to change the Font of the character word balloon."
+Genie.Speak "You can have a character change balloon fonts during your script by using Bookmarks."
+
+OpenWindow "Balloon Style"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Balloon Style window allows you to hide the character word balloon or adjust its size."
+Genie.Speak "You can have a character change balloon styles during your script by using Bookmarks."
+
+OpenWindow "Bookmarks"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Bookmarks window allows you to run mini-scripts when a bookmark is reached in the main script."
+Genie.Speak "They are used to handle the proper sequencing of some commands from your main script."
+Genie.Speak "You will notice the 'Add to Bookmark' button located in other windows."
+
+OpenWindow "Commands"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Commands window allows you to program voice and menu commands.  Some Examples are available when you click the Add Command button."
+Genie.Speak "Commands appear on the popup menu that appears when you right-click on a character."
+Genie.Speak "You can also test the voice recognition of your defined commands by pressing the Scroll Lock key or clicking the Listen button."
+
+OpenWindow "Desktop"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Desktop window contains a number of commands that only work with MASH Scripts and MASH \map=""executabull""=""Executable""\ files."
+Genie.Speak "You can create some pretty fancy \map=""prezzentations""=""presentations""\ just by displaying images of screen shots and playing wave files in the background."
+
+OpenWindow "PowerPoint"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The PowerPoint window allows you to associate your MASH script with a Microsoft PowerPoint \map=""prezzentation""=""presentation.""\"
+Genie.Speak "When you run your MASH Script or \map=""executabull""=""Executable""\, the \map=""prezzentation""=""presentation""\ will then open in the background."
+Genie.Speak "There are options to Auto-Advance and Auto-Repeat, if not already using PowerPoint transitions."
+
+OpenWindow "Script Output"
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "GestureRight"
+Genie.Speak "The Script Output window allows you to save your MASH script into a number of supported file formats."
+Genie.Speak "Various options are available for each script type.  In some cases, the generated script can be copied to the Windows Clipboard or Saved to a File."
+OpenWindow "Main"
+MoveToControl frmMASHMain.fraMain, Genie, -240, -150
+Genie.Play "GestureRight"
+Genie.Speak "You can save your MASH Script by clicking the Save Script button on the toolbar,  or by selecting Save on the File menu."
+Genie.Speak "Open a previously saved MASH Script by clicking the Open Script button on the toolbar,  or by selecting Open on the File menu."
+Genie.Play "GestureUp"
+Genie.Speak "The MASH Character and Tools menus contain other advanced menu commands."
+
+MoveToControl frmMASHMain.fraMain, Genie, -240, -150
+Genie.Play "GestureLeft"
+Genie.Speak "These VCR-like Play and Stop buttons allow you to play and stop your script."
+
+MoveToControl frmMASHMain.fraChar, Genie
+Genie.Play "Congratulate"
+Genie.Speak "Well that concludes our tour for now.  I hope you found it enjoyable!"
+Genie.Play "DoMagic1"
+Genie.Play "DoMagic2"
+Genie.Speak "Happy Scripting from BellCraft Technologies and the Microsoft Agent Ring!"
+Genie.Play "Greet"
+Genie.Hide
+
+[Commands]
+MenuName=MASH Menu
+ACO=Advanced Character Options|~|Advanced Character Options
+[CommandScript:ACO]
+AgentControl.PropertySheet.Visible = True
+
+AGENTRING=Microsoft Agent Web Ring|~|Go [to] [Microsoft] Agent [Web] Ring
+[CommandScript:AGENTRING]
+ShellEx "http://www.msagentring.org"
